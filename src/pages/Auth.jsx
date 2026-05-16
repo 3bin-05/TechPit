@@ -16,11 +16,14 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { ChevronRight, Github, Globe, Loader2 } from 'lucide-react';
+import { authSchema } from '../utils/validation';
+import { useRateLimit } from '../hooks/useRateLimit';
 
 export const Auth = () => {
   const [mode, setMode] = useState('login'); // 'login' or 'signup'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { checkLimit, rateLimitError } = useRateLimit('auth', 5, 900000); // 5 attempts per 15 mins
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +33,10 @@ export const Auth = () => {
 
   const handleAuthError = (err) => {
     console.error(err);
+    if (err.name === 'ZodError') {
+      setError(err.errors[0].message);
+      return;
+    }
     switch (err.code) {
       case 'auth/user-not-found':
         setError('No operator found with this email.');
@@ -59,10 +66,19 @@ export const Auth = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
+    if (!checkLimit()) {
+      setError(rateLimitError);
+      return;
+    }
+
+    setLoading(true);
+
     try {
+      // Validate with Zod
+      authSchema.parse({ email, password, ...(mode === 'signup' && { username }) });
+
       if (mode === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
         navigate('/feed');

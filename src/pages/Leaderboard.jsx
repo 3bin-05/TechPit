@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { Trophy, ArrowUp, ArrowDown, Minus, Crown } from 'lucide-react';
+import { ArrowUp, ArrowDown, Minus, Crown } from 'lucide-react';
 
 const MOCK_LEADERS = [
   { rank: 4, name: 'LogicPhantom', xp: '12,450', wins: 89, trend: 'up' },
@@ -84,7 +82,7 @@ export const Leaderboard = () => {
               </tr>
             </thead>
             <tbody>
-              {MOCK_LEADERS.map((leader, i) => (
+              {MOCK_LEADERS.map((leader) => (
                 <tr key={leader.name} className="border-b-2 border-void hover:bg-static/10 transition-colors">
                   <td className="p-4 font-bebas text-2xl">#{leader.rank}</td>
                   <td className="p-4">

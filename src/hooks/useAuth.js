@@ -9,17 +9,24 @@ export const useAuth = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Fetch additional user data from Firestore if needed
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          setUser({ ...firebaseUser, ...userDoc.data() });
+      try {
+        if (firebaseUser) {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            setUser({ ...firebaseUser, ...userDoc.data() });
+          } else {
+            setUser(firebaseUser);
+          }
         } else {
-          setUser(firebaseUser);
+          setUser(null);
         }
-      } else {
-        setUser(null);
+      } catch (error) {
+        console.error("Auth state processing failed:", error);
+      } finally {
+        setLoading(false);
       }
+    }, (error) => {
+      console.error("Auth subscription error:", error);
       setLoading(false);
     });
 

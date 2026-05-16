@@ -1,10 +1,9 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { Terminal, Sword, Award, MessageSquare, ChevronRight } from 'lucide-react';
+import { Sword, Award, MessageSquare, ChevronRight } from 'lucide-react';
 
 export const Landing = () => {
   return (

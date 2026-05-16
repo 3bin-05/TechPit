@@ -9,11 +9,14 @@ import { Clock, Users, Shield, Zap, Loader2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
+import { roomSchema } from '../utils/validation';
+import { useRateLimit } from '../hooks/useRateLimit';
 
 export const CreateRoom = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { checkLimit, rateLimitError } = useRateLimit('create_room', 3, 3600000); // 3 rooms per hour
   const [formData, setFormData] = useState({
     topic: '',
     category: 'Security',
@@ -29,19 +32,21 @@ export const CreateRoom = () => {
   };
 
   const handleGenerate = async () => {
-    if (!formData.topic.trim()) {
-      alert("Topic is required.");
+    if (!checkLimit()) {
+      alert(rateLimitError);
       return;
     }
-    
-    if (!user) {
-      alert("You must be logged in to create a room.");
-      navigate('/auth');
-      return;
-    }
-
     setLoading(true);
     try {
+      // Validate with Zod
+      roomSchema.parse(formData);
+      
+      if (!user) {
+        alert("You must be logged in to create a room.");
+        navigate('/auth');
+        return;
+      }
+
       const docRef = await addDoc(collection(db, 'rooms'), {
         ...formData,
         createdBy: user.uid,
@@ -56,7 +61,11 @@ export const CreateRoom = () => {
       navigate(`/room/${docRef.id}`);
     } catch (error) {
       console.error("Error creating room:", error);
-      alert("Failed to create room. Check Firestore rules.");
+      if (error.name === 'ZodError') {
+        alert(`Validation Error: ${error.errors[0].message}`);
+      } else {
+        alert("Failed to create room. Check Firestore rules.");
+      }
     } finally {
       setLoading(false);
     }

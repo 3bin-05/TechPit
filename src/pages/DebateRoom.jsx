@@ -4,23 +4,21 @@ import { MainLayout } from '../components/layout/MainLayout';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { Input } from '../components/ui/Input';
 import { 
-  Users, 
   Clock, 
   Send, 
   Code as CodeIcon, 
   Flag, 
   ChevronLeft,
   ChevronRight,
-  MessageSquare,
   Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, onValue, push, set, serverTimestamp as rtdbTimestamp } from 'firebase/database';
+import { ref, onValue, push, serverTimestamp as rtdbTimestamp } from 'firebase/database';
 import { db, rtdb } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
+import { messageSchema } from '../utils/validation';
 
 export const DebateRoom = () => {
   const { id } = useParams();
@@ -52,16 +50,21 @@ export const DebateRoom = () => {
   // Load Messages from RTDB
   useEffect(() => {
     const messagesRef = ref(rtdb, `rooms/${id}/messages`);
-    const unsubscribe = onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const msgList = Object.entries(data).map(([key, val]) => ({
-          id: key,
-          ...val
-        })).sort((a, b) => a.timestamp - b.timestamp);
-        setMessages(msgList);
+    const unsubscribe = onValue(messagesRef, 
+      (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const msgList = Object.entries(data).map(([key, val]) => ({
+            id: key,
+            ...val
+          })).sort((a, b) => a.timestamp - b.timestamp);
+          setMessages(msgList);
+        }
+      },
+      (error) => {
+        console.error("RTDB subscription failed:", error);
       }
-    });
+    );
 
     return () => unsubscribe();
   }, [id]);
@@ -73,22 +76,29 @@ export const DebateRoom = () => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!inputText.trim() || !user) return;
-    
-    const messagesRef = ref(rtdb, `rooms/${id}/messages`);
-    const newMessage = {
-      uid: user.uid,
-      codename: user.username || user.displayName || 'Anon_Operator',
-      position: room?.position || 'PRO', // For now, assume creator's position if they are the only ones
-      text: inputText,
-      timestamp: rtdbTimestamp(),
-    };
-
     try {
+      // Validate with Zod
+      messageSchema.parse({ text: inputText });
+      
+      if (!user) return;
+      
+      const messagesRef = ref(rtdb, `rooms/${id}/messages`);
+      const newMessage = {
+        uid: user.uid,
+        codename: user.username || user.displayName || 'Anon_Operator',
+        position: room?.position || 'PRO',
+        text: inputText.trim(),
+        timestamp: rtdbTimestamp(),
+      };
+
       await push(messagesRef, newMessage);
       setInputText('');
     } catch (error) {
-      console.error("Failed to send message:", error);
+      if (error.name === 'ZodError') {
+        console.warn("Validation failed:", error.errors[0].message);
+      } else {
+        console.error("Failed to send message:", error);
+      }
     }
   };
 
@@ -271,7 +281,7 @@ const ParticipantItem = ({ name, position, isYou }) => (
   </div>
 );
 
-const MessageBubble = ({ codename, position, text, timestamp, isOwn }) => (
+const MessageBubble = React.memo(({ codename, position, text, timestamp, isOwn }) => (
   <motion.div 
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
@@ -293,7 +303,9 @@ const MessageBubble = ({ codename, position, text, timestamp, isOwn }) => (
       </button>
     </div>
   </motion.div>
-);
+));
+
+MessageBubble.displayName = 'MessageBubble';
 
 const VoteItem = ({ name }) => (
   <button className="w-full flex justify-between items-center p-4 border-2 border-void hover:bg-glitch transition-all group">

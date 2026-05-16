@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Search, Users, Clock, ChevronRight, TrendingUp, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Search, Users, Clock, ChevronRight, Loader2 } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -24,21 +23,32 @@ export const Feed = () => {
       limit(20)
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const roomsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setRooms(roomsData);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        const roomsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setRooms(roomsData);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Feed subscription failed:", error);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, []);
 
-  const liveRooms = rooms.filter(r => r.status === 'live');
-  const lobbyRooms = rooms.filter(r => r.status === 'lobby');
-  const closedRooms = rooms.filter(r => r.status === 'closed');
+  const filteredRooms = useMemo(() => {
+    if (filter === 'All') return rooms;
+    return rooms.filter(r => r.category === filter);
+  }, [rooms, filter]);
+
+  const liveRooms = useMemo(() => filteredRooms.filter(r => r.status === 'live'), [filteredRooms]);
+  const lobbyRooms = useMemo(() => filteredRooms.filter(r => r.status === 'lobby'), [filteredRooms]);
+  const closedRooms = useMemo(() => filteredRooms.filter(r => r.status === 'closed'), [filteredRooms]);
 
   return (
     <MainLayout>

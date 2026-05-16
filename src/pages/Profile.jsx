@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -12,12 +12,8 @@ import {
   Sword, 
   Target, 
   Trophy, 
-  Settings, 
   Calendar,
-  ExternalLink,
-  MessageSquare,
   Zap,
-  Shield,
   Camera,
   Loader2
 } from 'lucide-react';
@@ -38,6 +34,7 @@ export const Profile = () => {
       });
       // User state will update via useAuth hook
     } catch (error) {
+      console.error("Avatar upload failed:", error);
       alert("Failed to upload image. Check console.");
     } finally {
       setUploading(false);

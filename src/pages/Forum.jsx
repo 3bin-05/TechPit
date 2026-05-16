@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -63,6 +63,7 @@ export const Forum = () => {
         createdAt: serverTimestamp()
       });
     } catch (error) {
+      console.error("Forum post failed:", error);
       alert("Failed to post. Check Firestore rules.");
     }
   };
