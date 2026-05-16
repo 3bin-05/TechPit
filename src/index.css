@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-ghost text-ink font-mono selection:bg-glitch selection:text-void;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bebas uppercase tracking-tight;
+  }
+}
+
+@layer components {
+  .brutalist-border {
+    @apply border-2 border-void;
+  }
+
+  .brutalist-shadow {
+    @apply shadow-brutalist;
+  }
+
+  .brutalist-card {
+    @apply bg-chalk border-2 border-void shadow-brutalist transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutalist-lg active:translate-x-0 active:translate-y-0 active:shadow-none;
+  }
+
+  .brutalist-button {
+    @apply bg-void text-chalk border-2 border-void px-6 py-2 uppercase font-mono tracking-wide transition-all duration-150 hover:shadow-brutalist-yellow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:bg-static disabled:border-static disabled:text-ink/50 disabled:cursor-not-allowed;
+  }
+
+  .brutalist-button-secondary {
+    @apply bg-chalk text-void border-2 border-void px-6 py-2 uppercase font-mono tracking-wide transition-all duration-150 hover:shadow-brutalist active:translate-x-0.5 active:translate-y-0.5 active:shadow-none;
+  }
+
+  .brutalist-input {
+    @apply bg-chalk border-2 border-void px-4 py-2 font-mono outline-none focus:border-glitch placeholder:text-static placeholder:italic;
+  }
+}

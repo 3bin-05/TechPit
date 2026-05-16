@@ -1,0 +1,1140 @@
+================================================================================
+                      TECHPIT — PROJECT REVIEW & DESIGN GUIDE
+              A Tech Debate & Forum Platform | Built on React + Firebase
+================================================================================
+
+  "Where netizens clash anonymously over tech — and legends are made."
+
+================================================================================
+  TABLE OF CONTENTS
+================================================================================
+
+  1.  Project Overview
+  2.  Core Concept & Philosophy
+  3.  Tech Stack Breakdown
+  4.  Feature Set (Full)
+  5.  App Architecture
+  6.  Pages & Routes
+  7.  UI Design Language & Guidelines
+  8.  Component Library Guide
+  9.  Firebase Data Structure
+  10. Cloudinary Integration Plan
+  11. Anonymity & Identity System
+  12. Debate Grading & Scoring Logic
+  13. Moderation & Profanity Filter
+  14. Forum System
+  15. Notifications & Realtime Events
+  16. Security & Rules
+  17. Development Phases & Roadmap
+  18. Naming Suggestions
+
+================================================================================
+  1. PROJECT OVERVIEW
+================================================================================
+
+  App Name Suggestion   : TECHPIT  (or: ByteRing / DebugDuel / CodeClash)
+  Purpose               : A real-time anonymous tech debate platform where
+                          users join topic-based chat rooms, argue tech
+                          positions, get graded by peers & AI, and build
+                          a public reputation profile over time.
+  Target Audience       : Developers, tech enthusiasts, security researchers,
+                          students, CTF players, open-source contributors.
+  Primary Actions       :
+      - Create or join a Debate Room on a tech topic
+      - Debate anonymously inside the room
+      - Post findings/results in the Forum
+      - Earn points & win badges on your public profile
+      - Follow topics, save debates, vote on forum posts
+
+================================================================================
+  2. CORE CONCEPT & PHILOSOPHY
+================================================================================
+
+  ANONYMITY IN THE ROOM, IDENTITY ON THE LEADERBOARD
+  ─────────────────────────────────────────────────────
+  Inside a debate room, each user gets a randomised codename (e.g.,
+  "NeonWalrus#7741", "GhostByte#0032"). Nobody knows who you are.
+  After the debate closes, results are tallied and points flow back
+  to your real profile. This separates ego from argument — the idea
+  wins, not the person.
+
+  DEBATES ARE STRUCTURED, NOT CHAOTIC
+  ──────────────────────────────────────
+  Each debate has:
+    - A clear TOPIC (e.g., "Is Rust actually safer than C++ in 2025?")
+    - A POSITION system (Pro / Con / Neutral)
+    - A TIME LIMIT (15 / 30 / 60 minutes)
+    - A TURN STRUCTURE (optional: round-based vs. freeflow)
+    - Profanity filter (hard block, not just a flag)
+    - A VERDICT phase where participants vote on the best argument
+
+  THE FORUM IS THE PERMANENT RECORD
+  ────────────────────────────────────
+  After debates end, users can publish their conclusions to the Forum.
+  Forum posts are NOT anonymous — they are tied to your real profile.
+  This creates a pipeline: debate → refine → publish → reputation.
+
+================================================================================
+  3. TECH STACK BREAKDOWN
+================================================================================
+
+  FRONTEND
+  ─────────
+  Framework       : React 18 + Vite
+  Styling         : Tailwind CSS v3 (JIT mode)
+  UI Components   : Radix UI (accessible primitives)
+  Animations      : Framer Motion
+  Icons           : Lucide React
+  Fonts           : "Bebas Neue" (headings) + "Space Mono" (body/code)
+  Routing         : React Router v6
+  State           : Zustand (global) + React Query (server state)
+  Real-time UI    : Firebase Realtime DB listeners via custom hooks
+  Rich Text       : TipTap (for forum posts)
+  Code Blocks     : highlight.js or Prism (for code snippets in debates)
+  Form Handling   : React Hook Form + Zod
+
+  BACKEND / SERVICES
+  ───────────────────
+  Auth            : Firebase Authentication
+                    (Email/Password + Google OAuth + GitHub OAuth)
+  Database        : Firebase Firestore (profiles, forum, results)
+  Real-time Chat  : Firebase Realtime Database (debate rooms, messages)
+  Storage         : Cloudinary (avatars, forum images, code screenshots)
+  Functions       : Firebase Cloud Functions (scoring, moderation triggers)
+  Profanity API   : bad-words (npm) + custom tech-slang filter list
+  Hosting         : Firebase Hosting
+
+  OPTIONAL INTEGRATIONS
+  ──────────────────────
+  AI Grading      : Anthropic Claude API (called via Cloud Function)
+                    Grades argument quality, logic, and clarity 1–10
+  Notifications   : Firebase Cloud Messaging (FCM) for browser push
+
+================================================================================
+  4. FEATURE SET (FULL)
+================================================================================
+
+  DEBATE ROOMS
+  ─────────────
+  [x] Create a debate room with topic, description, tags, time limit
+  [x] Debate categories: Security / Languages / Frameworks / AI / OS /
+      Hardware / Open Source / Protocols / Databases / Career
+  [x] Join as Pro / Con / Neutral
+  [x] Anonymous codename assigned on entry (persists for that session)
+  [x] Real-time chat with message threading (reply to a specific message)
+  [x] Code snippet support with syntax highlighting in chat
+  [x] Profanity hard-filter (message blocked, not just starred out)
+  [x] Message flagging system (community moderation)
+  [x] Moderator role (room creator gets mod powers)
+  [x] Timed rounds (optional) with countdown timer
+  [x] Verdict phase: users vote on strongest argument
+  [x] Room capacity limit (default 20, max 50 participants)
+  [x] Debate replay — view closed debate transcripts
+
+  USER PROFILES
+  ──────────────
+  [x] Display name, avatar (Cloudinary hosted)
+  [x] Debate Stats: Debates Entered / Won / Win Rate %
+  [x] Point balance (XP system)
+  [x] Badge collection (earned via milestones)
+  [x] Debate history (links to closed room transcripts)
+  [x] Forum post history
+  [x] Followers / Following
+  [x] Public vs. Private profile toggle
+
+  SCORING SYSTEM
+  ───────────────
+  [x] Peer vote points (other debaters vote best argument)
+  [x] AI quality score (Claude API grades logic and clarity)
+  [x] Participation points (just showing up)
+  [x] Win bonus points
+  [x] Forum upvote points
+  [x] Streak bonus (debated X days in a row)
+  [x] Badge unlocks trigger bonus XP
+
+  FORUM
+  ──────
+  [x] Create post with rich text editor
+  [x] Embed code blocks (language-aware)
+  [x] Attach images (Cloudinary upload)
+  [x] Link to closed debate as source
+  [x] Tags / categories
+  [x] Upvote / Downvote system
+  [x] Comment threads
+  [x] Save / Bookmark posts
+  [x] Pin posts to topic feeds
+  [x] "Verified Conclusion" tag (if majority of debaters agree)
+
+  DISCOVERY
+  ──────────
+  [x] Live Rooms feed (sorted by activity, newest, trending)
+  [x] Topic tag filtering
+  [x] Search (rooms, forum posts, users)
+  [x] Featured Debates (curated by system or admin)
+  [x] Trending Topics sidebar
+  [x] Leaderboard (weekly / all-time)
+
+  MODERATION
+  ───────────
+  [x] Profanity filter on all messages
+  [x] Message flagging queue
+  [x] Room creator can mute / kick users (by codename)
+  [x] Global ban system (Firebase Functions)
+  [x] Rate limiting on messages (max 1 message per 3 seconds)
+  [x] Auto-close rooms with no activity for 10 minutes
+
+================================================================================
+  5. APP ARCHITECTURE
+================================================================================
+
+  /src
+  ├── /assets              — Fonts, SVG illustrations, static images
+  ├── /components
+  │   ├── /ui              — Base components (Button, Card, Badge, Input…)
+  │   ├── /debate          — DebateRoom, MessageBubble, VerdictPanel…
+  │   ├── /forum           — ForumPost, CommentThread, RichEditor…
+  │   ├── /profile         — ProfileCard, StatBar, BadgeShelf…
+  │   ├── /layout          — Navbar, Sidebar, Footer, PageWrapper
+  │   └── /shared          — AnonAvatar, CodeBlock, TagPill, Timer…
+  ├── /hooks               — useDebateRoom, useAuth, useScore, useFilter…
+  ├── /lib
+  │   ├── firebase.js      — Firebase init
+  │   ├── cloudinary.js    — Upload helpers
+  │   ├── profanity.js     — Filter logic
+  │   └── scoring.js       — Point calculation helpers
+  ├── /pages               — One file per route (see Section 6)
+  ├── /store               — Zustand stores (auth, ui, notifications)
+  ├── /styles              — globals.css, tailwind.config.js
+  └── /utils               — formatTime, generateCodename, truncate…
+
+================================================================================
+  6. PAGES & ROUTES
+================================================================================
+
+  PAGE 1 — LANDING / HOME  [ / ]
+  ────────────────────────────────
+  Purpose   : First impression. Convert visitors to sign-ups.
+  Sections  :
+    - Hero block: App tagline + animated debate preview mockup
+    - "Live Now" strip: scrolling ticker of active debate rooms
+    - How It Works: 3-step visual explanation (Join / Debate / Earn)
+    - Featured Debate: highlighted closed debate with stats
+    - Trending Topics: tag cloud with activity counts
+    - Leaderboard preview: top 5 this week
+    - Call to action: "Pick a side. Make your case." → Sign Up button
+  Notes     : Not accessible when logged in (redirect to /feed)
+
+  PAGE 2 — SIGN UP / LOG IN  [ /auth ]
+  ──────────────────────────────────────
+  Purpose   : Authentication.
+  Sections  :
+    - Split layout: left = illustration / right = form
+    - Toggle: Sign Up | Log In
+    - Fields: Email, Password, Username (sign up only)
+    - OAuth buttons: Continue with Google / Continue with GitHub
+    - Terms of debate (short, cartoon-styled rules summary)
+  Notes     : After auth, redirect to /feed
+
+  PAGE 3 — FEED / DISCOVER  [ /feed ]
+  ──────────────────────────────────────
+  Purpose   : Main hub. Browse and join live debate rooms.
+  Sections  :
+    - Top bar: Search + filter chips (All / Security / Languages / AI…)
+    - "LIVE RIGHT NOW" section: large cards for active rooms
+    - "STARTING SOON" section: rooms in lobby/waiting phase
+    - "RECENTLY CLOSED" section: viewable transcripts
+    - Sidebar (desktop): Trending tags, Leaderboard top 3, Your stats
+  Room Card contains:
+    - Topic title
+    - Category tag
+    - Participant count (anonymous count, e.g., "14 voices")
+    - Pro vs Con ratio bar
+    - Time remaining
+    - "ENTER ROOM" button
+
+  PAGE 4 — CREATE DEBATE ROOM  [ /create ]
+  ──────────────────────────────────────────
+  Purpose   : Room creation form.
+  Fields    :
+    - Topic title (max 120 chars)
+    - Description / context (max 500 chars)
+    - Category (dropdown)
+    - Tags (up to 5, from preset list + custom)
+    - Your position: Pro / Con / Neutral (creator must pick)
+    - Time limit: 15 / 30 / 60 / 90 min
+    - Room type: Freeflow / Round-based
+    - If Round-based: rounds count + time per round
+    - Max participants: 10 / 20 / 30 / 50
+    - Allow Neutral participants: toggle
+    - Require approval to join: toggle
+  Preview   : Live preview card showing how room will appear in feed
+
+  PAGE 5 — DEBATE ROOM  [ /room/:roomId ]
+  ─────────────────────────────────────────
+  Purpose   : The core experience. Real-time debate.
+  Layout    :
+    ┌──────────────────────────────────────────────────┐
+    │  TOPIC BAR: Topic title | Timer | Position tags  │
+    ├──────────────┬───────────────────────────────────┤
+    │  PARTICIPANT │  MESSAGE FEED                     │
+    │  PANEL       │  (scrollable, newest at bottom)   │
+    │  (collapsible│                                   │
+    │  on mobile)  │  [Code block support]             │
+    │              │  [Reply threading]                │
+    │  Anonymous   │                                   │
+    │  codenames   ├───────────────────────────────────┤
+    │  + positions │  INPUT BAR                        │
+    │              │  [ Type your argument... ] [Send] │
+    │  Pro / Con   │  [Code] [Flag]                    │
+    │  score live  │                                   │
+    └──────────────┴───────────────────────────────────┘
+  Special States:
+    - LOBBY: waiting for min participants (countdown or manual start)
+    - VERDICT PHASE: voting panel slides up, chat locked
+    - CLOSED: read-only transcript view with final scores
+  Notes:
+    - Your own codename is highlighted in a different shade
+    - Profanity filter fires client-side + server-side (double layer)
+    - If kicked, redirect to /feed with toast message
+
+  PAGE 6 — VERDICT / RESULTS  [ /room/:roomId/results ]
+  ────────────────────────────────────────────────────────
+  Purpose   : Post-debate summary. Displayed after room closes.
+  Sections  :
+    - Topic recap + duration
+    - Anonymous participant list with their positions
+    - Message count stats per participant
+    - Peer vote results: "Best Argument" winner (still anonymous)
+    - AI Quality Score breakdown (if enabled)
+    - Points earned (revealed to each user — their own only)
+    - Call to action: "Publish to Forum" / "View Transcript" / "Back to Feed"
+  Notes:
+    - Names are still hidden here. Only "NeonWalrus won" etc.
+    - After publishing to forum, the debate is linked to real profile
+
+  PAGE 7 — DEBATE TRANSCRIPT  [ /transcript/:roomId ]
+  ──────────────────────────────────────────────────────
+  Purpose   : Public read-only replay of a closed debate.
+  Sections  :
+    - Header: topic, date, duration, category
+    - Filter bar: All / Pro / Con / Neutral / Flagged
+    - Full chronological message log with timestamps
+    - Highlighted "Best Argument" messages
+    - Code blocks rendered with syntax highlight
+    - Share button (generates public link)
+  Notes:
+    - Codenames are preserved (still anonymous)
+    - Can be linked from Forum posts as source
+
+  PAGE 8 — FORUM  [ /forum ]
+  ────────────────────────────
+  Purpose   : Community knowledge base. Public posts with real identities.
+  Layout    :
+    - Left sidebar: Categories, Trending tags, "New Post" button
+    - Main feed: Post cards sorted by Hot / New / Top
+    - Right sidebar (desktop): Top contributors this week
+  Post Card contains:
+    - Author avatar + username + XP badge
+    - Post title
+    - Tag chips
+    - Preview text (2–3 lines)
+    - Upvote count | Comment count | Bookmark count
+    - "Linked Debate" badge (if post references a debate)
+    - "Verified Conclusion" badge (if community agreed)
+
+  PAGE 9 — FORUM POST  [ /forum/:postId ]
+  ──────────────────────────────────────────
+  Purpose   : Full forum post view.
+  Sections  :
+    - Post header: author, date, tags, vote controls
+    - Rich text body (with embedded code blocks and images)
+    - Linked debate transcript (embedded or linked)
+    - Comment section (threaded, 2 levels deep)
+    - Reactions (not emoji spam — specific ones: Agree / Challenge /
+      Insightful / Needs Source)
+    - Share / Bookmark / Report
+
+  PAGE 10 — CREATE FORUM POST  [ /forum/new ]
+  ──────────────────────────────────────────────
+  Purpose   : Rich text editor for publishing findings.
+  Fields    :
+    - Title
+    - Category
+    - Tags
+    - Body (TipTap rich editor: bold, italic, headings, code, lists,
+      images via Cloudinary, link embed)
+    - "Link a Debate" picker (search your past debates)
+    - "Mark as Conclusion": toggle (means this is your final stance)
+    - Preview before submit
+
+  PAGE 11 — PUBLIC PROFILE  [ /profile/:username ]
+  ───────────────────────────────────────────────────
+  Purpose   : User's public reputation page.
+  Sections  :
+    - Hero: Avatar, Username, Join date, Short bio
+    - Stats bar: Total Debates / Wins / Win Rate / XP / Rank
+    - Badge shelf: earned badges with tooltips
+    - XP Progress bar: current level + next milestone
+    - Debate history: list of past debates (with codename, topic, result)
+    - Forum posts: grid of published posts
+    - Follow button (if not own profile)
+  Design note:
+    - Rank displayed as a cartoon title:
+      "Rookie Bit" → "Circuit Apprentice" → "Logic Phantom" →
+      "Kernel Sage" → "Void Architect"
+
+  PAGE 12 — MY PROFILE / SETTINGS  [ /settings ]
+  ──────────────────────────────────────────────────
+  Purpose   : Account management.
+  Tabs      :
+    - Profile: Edit username, bio, avatar (Cloudinary upload)
+    - Preferences: Notification settings, email digest
+    - Privacy: Public / Private profile toggle
+    - Security: Change password, linked accounts (Google / GitHub)
+    - Danger Zone: Delete account
+
+  PAGE 13 — LEADERBOARD  [ /leaderboard ]
+  ─────────────────────────────────────────
+  Purpose   : Community rankings.
+  Sections  :
+    - Toggle: Weekly / Monthly / All-time
+    - Top 3: Podium-style highlighted cards
+    - Full ranked list (paginated): Rank / Avatar / Username / XP /
+      Wins / Win Rate / Top category
+    - "Your rank" sticky bar at bottom (shows your position even if
+      you're not in top 50)
+  Filters   :
+    - All categories
+    - By category (Security / AI / Languages…)
+
+  PAGE 14 — NOTIFICATIONS  [ /notifications ]
+  ──────────────────────────────────────────────
+  Purpose   : Activity feed.
+  Types     :
+    - "Your debate room [X] is starting"
+    - "You earned [badge]"
+    - "Your argument was voted Best in [room]"
+    - "Someone replied to your forum post"
+    - "[User] followed you"
+    - "Debate transcript published: [room]"
+    - "Room [X] you joined is closing in 5 min"
+
+  PAGE 15 — SEARCH  [ /search ]
+  ────────────────────────────────
+  Purpose   : Universal search.
+  Tabs      :
+    - Rooms (live + closed)
+    - Forum posts
+    - Users
+    - Tags
+  Features  :
+    - Instant results as you type (debounced)
+    - Filter by category, date, status
+    - Recent searches saved locally
+
+  PAGE 16 — 404 / ERROR PAGE  [ /* ]
+  ─────────────────────────────────────
+  Purpose   : Custom error page.
+  Design    : Cartoon robot holding a broken terminal screen.
+              "404: Segmentation Fault. This page doesn't exist."
+              Button: "Back to Feed"
+
+================================================================================
+  7. UI DESIGN LANGUAGE & GUIDELINES
+================================================================================
+
+  AESTHETIC DIRECTION: "BRUTALIST CARTOON TERMINAL"
+  ────────────────────────────────────────────────────
+  Think: a comic book drawn by a hacker. Bold outlines. High contrast.
+  Heavy black borders. Stark white space. Occasional sketch textures.
+  Not cute — sharp and angular with cartoon energy.
+
+  COLOUR PALETTE
+  ────────────────
+  Name              Hex         Usage
+  ───────────────   ─────────   ────────────────────────────────────────
+  Void Black        #0A0A0A     Primary backgrounds, heavy borders
+  Ghost White       #F8F8F8     Page backgrounds, card surfaces
+  Chalk White       #FFFFFF     Pure white text on dark surfaces
+  Ink Black         #1A1A1A     Body text, UI text on light bg
+  Signal Red        #E63946     Danger, Con position, error states
+  Byte Green        #2DC653     Pro position, success, win indicators
+  Static Grey       #D0D0D0     Dividers, inactive states, borders
+  Glitch Yellow     #FFD60A     Accent, highlights, badges, XP bar
+  Terminal Teal     #00B4D8     Links, interactive elements, Neutral
+
+  USE RULES:
+    - 90% black and white. Colour is used SPARINGLY for meaning.
+    - Red = Con / danger / error
+    - Green = Pro / success / win
+    - Yellow = points / rewards / highlight
+    - Teal = navigation / interactive / neutral position
+    - NEVER use gradients except on XP progress bar
+
+  TYPOGRAPHY
+  ────────────
+  Display / Headings : "Bebas Neue" (Google Fonts) — all-caps, bold,
+                       condensed. Used for room titles, page headers,
+                       debate topic titles.
+
+  Body / UI Text     : "Space Mono" (Google Fonts) — monospace with
+                       personality. Everything from nav labels to
+                       forum body text. Reinforces the terminal aesthetic.
+
+  Code Snippets      : "JetBrains Mono" — used inside code blocks only.
+
+  Scale (Tailwind):
+    text-xs  → 11px  — timestamps, meta labels
+    text-sm  → 13px  — secondary text, tags
+    text-base→ 15px  — body text, messages
+    text-lg  → 18px  — card titles, section headers
+    text-2xl → 24px  — page subheadings
+    text-4xl → 36px  — display headings
+    text-6xl → 60px  — hero text only
+
+  BORDERS & SHAPES
+  ──────────────────
+  Rule: EVERYTHING has a border. Minimum 2px, usually border-black.
+  Radius: Use only these values:
+    - rounded-none (0px)  — primary cards, input fields, modals
+    - rounded (4px)       — tags, chips, small badges
+    - rounded-full        — avatar circles, toggle pills
+
+  SHADOWS
+  ─────────
+  Use offset box-shadows only (no blur = brutalist feel):
+    Standard card  : 4px 4px 0px #0A0A0A
+    Hovered card   : 6px 6px 0px #0A0A0A
+    Pressed button : 0px 0px 0px #0A0A0A (shadow collapses = click feel)
+    Modal          : 8px 8px 0px #0A0A0A
+
+  BUTTONS
+  ─────────
+  Primary   : bg-black text-white border-2 border-black
+              hover → shadow-[4px_4px_0px_#FFD60A]
+  Secondary : bg-white text-black border-2 border-black
+              hover → shadow-[4px_4px_0px_#0A0A0A]
+  Danger    : bg-[#E63946] text-white border-2 border-black
+  Disabled  : bg-[#D0D0D0] text-[#888] border-2 border-[#D0D0D0]
+  All buttons: uppercase, Space Mono, tracking-wide, no border-radius
+
+  CARDS
+  ───────
+  bg-white border-2 border-black shadow-[4px_4px_0px_#0A0A0A]
+  On hover: shadow-[6px_6px_0px_#0A0A0A] + translate(-1px, -1px)
+  Transition: 150ms ease
+
+  INPUTS
+  ────────
+  bg-white border-2 border-black rounded-none
+  focus: border-[#FFD60A] outline-none ring-0
+  placeholder: text-[#888] italic
+
+  TAGS / CHIPS
+  ─────────────
+  text-xs uppercase tracking-wider font-mono
+  border border-black px-2 py-0.5 rounded
+  Category-specific bg colors (subtle):
+    Security  → bg-[#FFE8E8] border-[#E63946]
+    AI        → bg-[#E8F4FF] border-[#00B4D8]
+    Languages → bg-[#E8FFE8] border-[#2DC653]
+    OS        → bg-[#FFFBE8] border-[#FFD60A]
+
+  ILLUSTRATION STYLE
+  ────────────────────
+  Use inline SVG illustrations throughout the app:
+    - Simple, flat, thick-outlined cartoons
+    - Black outlines only (no drop shadows on illustrations)
+    - Minimal fill: mostly white + one accent colour
+    - Characters: simple robots, circuit-faced figures, keyboard creatures
+    - Used on: Landing page hero, 404 page, empty states, onboarding
+
+  EMPTY STATES
+  ─────────────
+  Every empty state has:
+    - A small SVG illustration
+    - A heading in Bebas Neue: e.g., "NOTHING FIRING YET"
+    - A short Space Mono subtext
+    - A CTA button
+
+  LOADING STATES
+  ────────────────
+  Skeleton loaders: animated grey blocks matching card layout
+  No spinner — use a blinking cursor ( _ ) animation instead,
+  styled like a terminal prompt. e.g., "LOADING ROOMS_"
+
+  ANIMATIONS (Framer Motion)
+  ────────────────────────────
+  Page transitions    : slide in from right, 200ms ease-out
+  Card hover          : translateY(-2px) + shadow expand
+  Button press        : shadow collapse + translateY(2px)
+  Toast notifications : slide in from top-right, auto-dismiss 4s
+  Modal               : scale from 0.95 + fade in, 180ms
+  Message appear      : slide in from bottom, stagger 30ms per message
+  Verdict panel       : slide up from bottom over chat area
+  XP bar fill         : animated width increase on points earned
+
+  NAVIGATION
+  ────────────
+  Desktop: Left sidebar (fixed, 240px wide)
+    - Logo at top
+    - Nav links: Feed / Create / Forum / Leaderboard / Notifications
+    - Bottom: Profile avatar + username + XP level
+  Mobile: Bottom tab bar (5 icons: Feed, Create, Forum, Board, Profile)
+  Active state: bg-black text-white (inverted)
+
+  RESPONSIVE BREAKPOINTS (Tailwind defaults)
+  ────────────────────────────────────────────
+  sm  : 640px  — phone landscape
+  md  : 768px  — tablet
+  lg  : 1024px — desktop (sidebar appears)
+  xl  : 1280px — wide desktop (3-column layout)
+
+================================================================================
+  8. COMPONENT LIBRARY GUIDE
+================================================================================
+
+  DEBATE ROOM COMPONENTS
+  ────────────────────────
+  <DebateRoomCard />
+    Props: topic, category, participantCount, proCount, conCount,
+           timeLeft, status (live/lobby/closed)
+    Behaviour: hover lifts card, status badge changes colour
+
+  <MessageBubble />
+    Props: codename, position, content, timestamp, isOwnMessage,
+           replyTo, hasCode, isFlagged, isBestArg
+    Behaviour: code blocks render with highlight.js; reply chains indent;
+               Best Argument messages get a yellow left border
+
+  <AnonCodename />
+    Props: codename, position
+    Displays: coloured dot (green/red/teal) + monospace codename
+
+  <VerdictPanel />
+    Overlay: slides up over chat when verdict phase begins
+    Shows: all participants' codenames, vote button per codename,
+           countdown for voting window
+
+  <RoundTimer />
+    Large countdown ring (SVG stroke-dashoffset animation)
+    Turns red when under 20% time remaining
+
+  FORUM COMPONENTS
+  ──────────────────
+  <ForumPostCard />
+    Props: author, title, tags, preview, upvotes, commentCount,
+           linkedDebate, isVerified
+    Behaviour: upvote button animates; verified badge glows subtly
+
+  <RichTextEditor />
+    Wrapper around TipTap with custom toolbar styled in app theme
+    Toolbar buttons: Bold / Italic / H2 / H3 / Code / Code Block /
+                     Bullet List / Image Upload / Link / Quote
+
+  <CommentThread />
+    2-level threading; collapse/expand; own comments highlighted
+
+  PROFILE COMPONENTS
+  ────────────────────
+  <StatBar />
+    Label + number + optional percentage bar in Glitch Yellow
+
+  <BadgeShelf />
+    Horizontal scroll on mobile; grid on desktop
+    Each badge: SVG icon + name tooltip on hover
+
+  <XPLevelBar />
+    Full-width yellow progress bar with current level label +
+    next level milestone. Animates on mount.
+
+  <RankTitle />
+    Displays cartoon rank name + icon based on XP tier
+
+  SHARED COMPONENTS
+  ───────────────────
+  <TagPill />          — Category/topic tag chip
+  <CodeBlock />        — highlight.js powered code display
+  <Modal />            — Framer Motion scaled modal with backdrop
+  <Toast />            — Top-right notification toast
+  <ConfirmDialog />    — Destructive action confirmation
+  <SearchBar />        — Debounced search with keyboard shortcut
+  <AvatarUpload />     — Cloudinary upload widget
+
+================================================================================
+  9. FIREBASE DATA STRUCTURE
+================================================================================
+
+  FIRESTORE COLLECTIONS
+  ───────────────────────
+
+  users/{userId}
+    ├── username: string
+    ├── email: string
+    ├── avatarUrl: string (Cloudinary)
+    ├── bio: string
+    ├── xp: number
+    ├── level: number
+    ├── debatesEntered: number
+    ├── debatesWon: number
+    ├── winRate: number (computed)
+    ├── badges: string[]
+    ├── followers: string[]
+    ├── following: string[]
+    ├── isPublic: boolean
+    └── createdAt: timestamp
+
+  rooms/{roomId}
+    ├── topic: string
+    ├── description: string
+    ├── category: string
+    ├── tags: string[]
+    ├── creatorId: string
+    ├── status: "lobby" | "active" | "verdict" | "closed"
+    ├── timeLimit: number (minutes)
+    ├── roundBased: boolean
+    ├── maxParticipants: number
+    ├── allowNeutral: boolean
+    ├── requireApproval: boolean
+    ├── createdAt: timestamp
+    ├── startedAt: timestamp
+    └── closedAt: timestamp
+
+  rooms/{roomId}/participants/{userId}
+    ├── codename: string (generated on join)
+    ├── position: "pro" | "con" | "neutral"
+    ├── joinedAt: timestamp
+    ├── messageCount: number
+    ├── peerVotesReceived: number
+    └── aiScore: number
+
+  rooms/{roomId}/votes/{voteId}
+    ├── voterId: string
+    ├── targetCodename: string
+    └── createdAt: timestamp
+
+  forum/{postId}
+    ├── authorId: string
+    ├── title: string
+    ├── body: string (rich text JSON)
+    ├── category: string
+    ├── tags: string[]
+    ├── linkedRoomId: string | null
+    ├── isConclusion: boolean
+    ├── isVerified: boolean
+    ├── upvotes: number
+    ├── downvotes: number
+    ├── commentCount: number
+    └── createdAt: timestamp
+
+  forum/{postId}/comments/{commentId}
+    ├── authorId: string
+    ├── body: string
+    ├── parentId: string | null
+    ├── reactions: map
+    └── createdAt: timestamp
+
+  REALTIME DATABASE (Firebase RTDB)
+  ────────────────────────────────────
+  rooms/{roomId}/messages/{messageId}
+    ├── codename: string
+    ├── position: string
+    ├── text: string
+    ├── codeSnippet: string | null
+    ├── language: string | null
+    ├── replyTo: string | null
+    ├── isFlagged: boolean
+    └── timestamp: number
+
+  rooms/{roomId}/meta
+    ├── participantCount: number
+    ├── proCount: number
+    ├── conCount: number
+    ├── neutralCount: number
+    └── currentRound: number
+
+================================================================================
+  10. CLOUDINARY INTEGRATION PLAN
+================================================================================
+
+  UPLOAD SCENARIOS
+  ──────────────────
+  1. Profile Avatar
+     - Trigger: Avatar upload in /settings
+     - Transformation: crop to 1:1, resize 400x400, format webp
+     - Folder: /techpit/avatars/{userId}
+     - Tag: avatar
+
+  2. Forum Post Images
+     - Trigger: Image insertion in TipTap editor
+     - Transformation: auto quality, max width 1200px, format webp
+     - Folder: /techpit/forum/{postId}
+     - Tag: forum-image
+
+  3. Code Screenshot (optional)
+     - User can upload a code screenshot in debate or forum
+     - Transformation: none (preserve clarity)
+     - Folder: /techpit/code-shots
+
+  UPLOAD FLOW (unsigned upload preset)
+  ──────────────────────────────────────
+  1. User selects file in UI
+  2. Client calls Cloudinary Upload API directly with unsigned preset
+  3. Cloudinary returns secure_url
+  4. URL stored in Firestore document
+  5. Displayed via <img src={cloudinaryUrl} /> with Cloudinary
+     transformations as URL parameters
+
+  ENVIRONMENT VARIABLES NEEDED
+  ──────────────────────────────
+  VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
+  VITE_CLOUDINARY_UPLOAD_PRESET=techpit_unsigned
+
+================================================================================
+  11. ANONYMITY & IDENTITY SYSTEM
+================================================================================
+
+  HOW CODENAMES ARE GENERATED
+  ──────────────────────────────
+  On joining a room, the system calls generateCodename():
+    - Pull random adjective from curated tech-adjacent list
+      (e.g., Neon, Ghost, Static, Binary, Null, Void, Kernel, Phantom…)
+    - Pull random noun from curated list
+      (e.g., Walrus, Circuit, Daemon, Socket, Buffer, Pixel, Cluster…)
+    - Append 4-digit random number
+    - Result: "NullBuffer#2219" or "PhantomSocket#7741"
+
+  CODENAME PERSISTENCE
+  ──────────────────────
+  - Codename is stored in rooms/{roomId}/participants/{userId}
+  - Same user always sees same codename in same room
+  - Different room = different codename (fresh assign)
+  - Codenames are room-scoped, never globally linked to real identity
+    (server-side mapping is kept for moderation/ban purposes only)
+
+  POST-DEBATE DEANONYMISATION
+  ─────────────────────────────
+  - Results page shows: "NullBuffer#2219 won with 14 peer votes"
+  - Each user can only see THEIR OWN real name next to their codename
+  - Forum post links debate → the author is publicly identified on the
+    forum but the debate chat remains codename-only
+
+  MODERATION EXCEPTION
+  ──────────────────────
+  - Firebase Cloud Functions have access to userId ↔ codename mapping
+  - If a user is globally banned, they are blocked at the userId level
+  - Banned users cannot create new codenames to bypass bans
+
+================================================================================
+  12. DEBATE GRADING & SCORING LOGIC
+================================================================================
+
+  POINT SOURCES
+  ───────────────
+  Action                              Points
+  ──────────────────────────────────  ───────
+  Joining a debate room               +5 XP
+  Completing a debate (stayed to end) +10 XP
+  Receiving a peer vote               +15 XP per vote
+  Winning "Best Argument" (most votes)+50 XP
+  AI quality score ≥ 8/10             +25 XP
+  AI quality score ≥ 6/10             +10 XP
+  Forum post upvote received          +3 XP
+  Forum post reaches 50 upvotes       +100 XP
+  Daily login streak (per day)        +5 XP
+  Weekly streak bonus (7 days)        +50 XP
+
+  WIN CONDITION
+  ───────────────
+  A debate is "won" by the side (Pro or Con) whose participants
+  collectively received more peer votes. Individual winner is the
+  participant with most votes on the winning side.
+
+  If tie: both top participants get half win-bonus points.
+
+  LEVEL THRESHOLDS
+  ──────────────────
+  Level 1  "Rookie Bit"          0 – 499 XP
+  Level 2  "Circuit Apprentice"  500 – 1,499 XP
+  Level 3  "Logic Phantom"       1,500 – 3,999 XP
+  Level 4  "Kernel Sage"         4,000 – 9,999 XP
+  Level 5  "Void Architect"      10,000+ XP
+
+  BADGES
+  ────────
+  Badge Name          Trigger
+  ──────────────────  ─────────────────────────────────────────────
+  First Blood         First debate completed
+  Debate Newbie       5 debates completed
+  Silver Tongue       First "Best Argument" vote received
+  Crowd Favourite     Best Argument in 5 debates
+  Code Slinger        Posted 3+ code snippets in debates
+  Forum Pioneer       First forum post published
+  Truth Seeker        Forum post marked "Verified Conclusion"
+  Ghost Mode          Won a debate without anyone knowing who you are
+  Marathon Debater    Participated in a 60+ minute debate
+  Week Warrior        7-day login streak
+  Century Club        100 debates completed
+  Void Architect      Reached Level 5
+
+  AI GRADING (Claude API via Cloud Function)
+  ────────────────────────────────────────────
+  Triggered when debate closes.
+  Cloud Function collects all messages by each participant,
+  sends to Claude API with this prompt structure:
+
+    "You are a debate judge evaluating technical arguments in a
+     tech debate. Score each participant's arguments on:
+     1. Logical coherence (1-5)
+     2. Technical accuracy (1-5)
+     3. Clarity and persuasiveness (1-5)
+     4. Use of evidence/examples (1-5)
+     Return JSON: { codename: string, totalScore: number, feedback: string }[]"
+
+  Score is mapped to XP bonus (see Point Sources table above).
+  Feedback is shown on the Results page per participant.
+
+================================================================================
+  13. MODERATION & PROFANITY FILTER
+================================================================================
+
+  PROFANITY FILTER IMPLEMENTATION
+  ──────────────────────────────────
+  Library: bad-words (npm package)
+  Custom additions: offensive tech-slurs, harassment terms
+  Behaviour:
+    1. Client-side filter fires on keyup (warns user inline)
+    2. On send, client validates again (blocks send + shows error toast)
+    3. Firebase Cloud Function validates on write (double layer)
+    4. If server detects profanity: message rejected, user warned
+    5. 3 violations in a session → auto-mute for 10 minutes
+    6. 5 violations → automatic kick from room
+
+  IMPORTANT: Messages are BLOCKED (not starred). The word never
+  appears in the database. The send action simply fails with a
+  toast: "PROFANITY DETECTED. MESSAGE NOT SENT."
+
+  MESSAGE FLAGGING
+  ──────────────────
+  Any user can flag a message (flag icon on hover).
+  Flagged messages get a subtle red left border in the chat.
+  Room creator (moderator) can:
+    - Dismiss flag (message stays, flag cleared)
+    - Delete message
+    - Mute user (codename-scoped, 5 minutes)
+    - Kick user (removes from room, cannot rejoin)
+
+  RATE LIMITING
+  ───────────────
+  Client-side: button disabled for 3 seconds after send
+  Server-side: Cloud Function rejects if same userId posts
+               more than 20 messages in any 60-second window.
+
+================================================================================
+  14. FORUM SYSTEM
+================================================================================
+
+  POST LIFECYCLE
+  ────────────────
+  Draft → Published → (optional) Verified Conclusion
+
+  VERIFIED CONCLUSION
+  ─────────────────────
+  A forum post can be nominated as a "Verified Conclusion" if:
+    1. It references a completed debate
+    2. It receives 25+ upvotes
+    3. Majority of participants in the linked debate upvote it
+  Admin can also manually verify.
+
+  REACTIONS (not standard emoji)
+  ────────────────────────────────
+  On forum posts and comments:
+    👁 "Insightful"   — this taught me something
+    ⚡ "Agree"        — I concur with this stance
+    🔥 "Challenge"    — I disagree, see my counter
+    🔗 "Needs Source" — citation needed
+
+  These replace generic thumbs. Clicking "Challenge" prompts
+  user to leave a comment explaining their counter-position.
+
+  SEARCH WITHIN FORUM
+  ──────────────────────
+  Full-text search via Firestore or Algolia integration (optional).
+  Filter by: category, tags, date range, verified only, by author.
+
+================================================================================
+  15. NOTIFICATIONS & REALTIME EVENTS
+================================================================================
+
+  IN-APP NOTIFICATIONS
+  ──────────────────────
+  Stored in Firestore: users/{userId}/notifications/{notifId}
+  Unread count badge on notification bell icon.
+  Clicking notification → navigates to relevant page.
+  "Mark all read" action.
+
+  TOAST NOTIFICATIONS (in-session)
+  ───────────────────────────────────
+  Appear top-right, slide in, auto-dismiss after 4 seconds.
+  Types:
+    INFO    (black bg, white text)
+    SUCCESS (green bg, black text)
+    ERROR   (red bg, white text)
+    POINTS  (yellow bg, black text) — "+50 XP EARNED"
+
+  REALTIME EVENTS IN DEBATE ROOM
+  ────────────────────────────────
+  - "[CodedName] has joined as PRO" banner
+  - "[CodedName] has left" banner
+  - "DEBATE STARTS IN 3…2…1…" countdown overlay
+  - "VERDICT PHASE BEGINS" panel slides up
+  - "ROOM CLOSING IN 5 MINUTES" sticky warning bar
+
+================================================================================
+  16. SECURITY & RULES
+================================================================================
+
+  FIREBASE SECURITY RULES (OVERVIEW)
+  ─────────────────────────────────────
+  - Users can only read/write their own user document
+  - Room participants can only write messages to rooms they've joined
+  - Profanity check done in Cloud Functions (server-authoritative)
+  - Votes can only be cast once per user per room (enforced in rules)
+  - Forum posts can be created by any authenticated user
+  - Only post author can edit/delete their post
+  - Admins have elevated write access (custom claims)
+
+  AUTHENTICATION RULES
+  ──────────────────────
+  - All debate/forum features require authentication
+  - Landing page is public (read-only stats/featured content)
+  - Transcripts are public (read-only)
+  - Leaderboard is public (read-only)
+
+  RATE LIMITING (Cloud Functions)
+  ─────────────────────────────────
+  - Max 1 room created per user per hour
+  - Max 20 messages per 60 seconds per user
+  - Max 10 forum posts per user per day
+  - Max 50 votes per user per 24 hours (anti-gaming)
+
+================================================================================
+  17. DEVELOPMENT PHASES & ROADMAP
+================================================================================
+
+  PHASE 1 — FOUNDATION (Weeks 1–3)
+  ───────────────────────────────────
+  [x] Project setup: Vite + React + Tailwind + Firebase
+  [x] Authentication: Email/Password + Google + GitHub
+  [x] User profile creation on first login
+  [x] Basic routing structure
+  [x] Design system: colours, fonts, base components
+  [x] Navbar + sidebar layout
+  [x] Landing page (static)
+
+  PHASE 2 — DEBATE ROOMS (Weeks 4–7)
+  ─────────────────────────────────────
+  [x] Room creation form
+  [x] Room feed page
+  [x] Realtime Database message system
+  [x] Codename generation and assignment
+  [x] Chat UI with code block support
+  [x] Profanity filter (client + server)
+  [x] Participant panel
+  [x] Room status management (lobby → active → verdict → closed)
+  [x] Verdict phase + voting
+  [x] Results page
+
+  PHASE 3 — SCORING & PROFILES (Weeks 8–10)
+  ────────────────────────────────────────────
+  [x] XP system + level calculation
+  [x] Badge logic + triggers
+  [x] Profile page
+  [x] Debate history
+  [x] Leaderboard
+  [x] Cloudinary avatar upload
+
+  PHASE 4 — FORUM (Weeks 11–13)
+  ────────────────────────────────
+  [x] TipTap rich editor integration
+  [x] Forum post creation + display
+  [x] Upvote / downvote
+  [x] Comment threads
+  [x] Reactions
+  [x] Link debate to forum post
+  [x] Verified Conclusion system
+
+  PHASE 5 — POLISH & ADVANCED (Weeks 14–16)
+  ────────────────────────────────────────────
+  [x] AI grading (Claude API via Cloud Function)
+  [x] Push notifications (FCM)
+  [x] Debate transcript page
+  [x] Search (universal)
+  [x] Settings page
+  [x] Animations (Framer Motion) throughout
+  [x] Mobile responsiveness pass
+  [x] Performance audit
+
+  PHASE 6 — LAUNCH
+  ──────────────────
+  [x] Firebase Hosting deploy
+  [x] Custom domain setup
+  [x] Analytics (Firebase Analytics)
+  [x] Error monitoring (Sentry)
+  [x] Beta user testing
+  [x] Public launch
+
+================================================================================
+  18. NAMING SUGGESTIONS
+================================================================================
+
+  App Name Options
+  ──────────────────
+  TECHPIT       — Tech + Cockpit/Pit (fighting pit) — clean, brandable
+  DEBUGDUEL     — Dueling in tech debates — memorable
+  BYTERING      — ByteRing (like boxing ring for bytes) — creative
+  CODECOUNCIL   — More professional, forum-focused feel
+  PATCHWAR      — Security/vulnerability debate focus
+  NULLROOM      — Anonymous + tech (null = unknown)
+  SYNTHCLASH    — Synthetic clash of ideas — futuristic
+
+  Suggested Final Name: TECHPIT
+  Tagline: "Pick a side. Make your case. Leave no trace."
+
+================================================================================
+  END OF DOCUMENT
+  TECHPIT Project Review & Design Guide v1.0
+  Generated for: Vite + React + Tailwind CSS + Firebase + Cloudinary Stack
+================================================================================
+
+
+Couldinary api key secret- CdnL64sRtDbzfmPasCMGObHeANs
+api key - 268193121628251
+user- dtf90tq2w
+
+
+Firebase credentials
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyD1nIj3JHp2yZQcIKB-Nnly7K90Xo1Hgj8",
+  authDomain: "debate-c787f.firebaseapp.com",
+  projectId: "debate-c787f",
+  storageBucket: "debate-c787f.firebasestorage.app",
+  messagingSenderId: "630844135043",
+  appId: "1:630844135043:web:73184d7eed89d19265adb6",
+  measurementId: "G-1E046CBQY2"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+
+google and email password authentication enabled and firestore enabled if rules need updatation please specify it in the ending of teh projectId
