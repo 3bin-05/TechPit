@@ -149,7 +149,7 @@ export const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-ghost overflow-hidden">
+    <div className="h-screen flex flex-col lg:flex-row bg-ghost overflow-hidden selection:bg-glitch selection:text-void">
       {/* Left Branding Side */}
       <div className="hidden lg:flex lg:w-1/2 bg-void text-chalk p-12 flex flex-col justify-center relative overflow-hidden">
         <div className="relative z-10">
@@ -181,8 +181,8 @@ export const Auth = () => {
       </div>
 
       {/* Right Form Side */}
-      <div className="lg:w-1/2 p-8 md:p-24 flex flex-col justify-center bg-chalk">
-        <div className="max-w-md w-full mx-auto space-y-12">
+      <div className="lg:w-1/2 p-6 md:py-8 md:px-24 flex flex-col justify-center bg-chalk overflow-y-auto">
+        <div className="max-w-md w-full mx-auto space-y-8">
           <div className="space-y-4">
             <div className="flex gap-4 border-b-4 border-void pb-2">
               <button 
