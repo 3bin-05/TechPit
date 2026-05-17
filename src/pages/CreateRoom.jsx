@@ -11,6 +11,7 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { roomSchema } from '../utils/validation';
 import { useRateLimit } from '../hooks/useRateLimit';
+import { GENRES } from '../utils/pitScore';
 
 export const CreateRoom = () => {
   const navigate = useNavigate();
@@ -19,7 +20,8 @@ export const CreateRoom = () => {
   const { checkLimit, rateLimitError } = useRateLimit('create_room', 3, 3600000); // 3 rooms per hour
   const [formData, setFormData] = useState({
     topic: '',
-    category: 'Security',
+    category: 'Cybersecurity',
+    secondaryCategories: [],
     position: 'PRO',
     timeLimit: '30',
     roomType: 'FREEFLOW',
@@ -28,7 +30,17 @@ export const CreateRoom = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      // If category is changing, reset secondaryCategories if they match the new category
+      if (name === 'category') {
+        return { 
+          ...prev, 
+          [name]: value,
+          secondaryCategories: prev.secondaryCategories.filter(x => x !== value)
+        };
+      }
+      return { ...prev, [name]: value };
+    });
   };
 
   const handleGenerate = async () => {
@@ -62,6 +74,12 @@ export const CreateRoom = () => {
         status: 'lobby',
         participants: [creatorData],
         participantCount: 1,
+        likes: 0,
+        shares: 0,
+        views: 1,
+        proVotes: 10,
+        conVotes: 10,
+        messageCount: 0
       });
       
       console.log("Room created successfully:", docRef.id);
@@ -111,12 +129,9 @@ export const CreateRoom = () => {
                   onChange={handleChange}
                   disabled={loading}
                 >
-                  <option>Security</option>
-                  <option>Languages</option>
-                  <option>AI</option>
-                  <option>OS</option>
-                  <option>Web</option>
-                  <option>Hardware</option>
+                  {GENRES.map(genre => (
+                    <option key={genre}>{genre}</option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-2">
@@ -139,6 +154,44 @@ export const CreateRoom = () => {
                     CON
                   </PositionButton>
                 </div>
+              </div>
+            </div>
+
+            {/* Secondary Genres Pickers */}
+            <div className="space-y-2">
+              <label className="font-bebas text-2xl block">Secondary Genres (Pick up to 2)</label>
+              <div className="flex flex-wrap gap-2 p-3 border-2 border-void bg-chalk max-h-32 overflow-y-auto">
+                {GENRES.filter(g => g !== formData.category).map(g => {
+                  const selected = formData.secondaryCategories.includes(g);
+                  return (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => {
+                        if (selected) {
+                          setFormData(prev => ({
+                            ...prev,
+                            secondaryCategories: prev.secondaryCategories.filter(x => x !== g)
+                          }));
+                        } else if (formData.secondaryCategories.length < 2) {
+                          setFormData(prev => ({
+                            ...prev,
+                            secondaryCategories: [...prev.secondaryCategories, g]
+                          }));
+                        } else {
+                          alert("Maximum of 2 secondary genres allowed.");
+                        }
+                      }}
+                      className={`px-3 py-1 text-xs font-mono border transition-all ${
+                        selected 
+                          ? 'bg-glitch border-void text-void font-bold shadow-brutalist' 
+                          : 'bg-chalk border-void/30 text-static hover:border-void'
+                      }`}
+                    >
+                      {selected ? `[x] ${g}` : `[ ] ${g}`}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

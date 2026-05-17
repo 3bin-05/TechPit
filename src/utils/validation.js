@@ -8,7 +8,15 @@ export const authSchema = z.object({
 
 export const roomSchema = z.object({
   topic: z.string().min(10, 'Topic must be at least 10 characters.').max(120, 'Topic truncated at 120 characters.').trim(),
-  category: z.enum(['Security', 'Languages', 'AI', 'OS', 'Web', 'Hardware']),
+  category: z.enum([
+    'Security', 'Languages', 'AI', 'OS', 'Web', 'Hardware',
+    'AI & Machine Learning', 'Cybersecurity', 'Web3 & Crypto', 
+    'Big Tech & Ethics', 'Open Source vs Proprietary', 'Mobile & Consumer Tech', 
+    'Space & Future Tech', 'Gaming Technology', 'Green Tech & Sustainability', 
+    'Startups & Disruption', 'Developer Tools & Infra', 'Social Media & Privacy', 
+    'Tech Policy & Regulation', 'Biotech & Health Tech', 'Quantum & Emerging Tech'
+  ]),
+  secondaryCategories: z.array(z.string()).optional(),
   position: z.enum(['PRO', 'CON']),
   timeLimit: z.enum(['15', '30', '60']),
   roomType: z.enum(['FREEFLOW', 'ROUNDS']),

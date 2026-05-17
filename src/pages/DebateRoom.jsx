@@ -19,6 +19,8 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { messageSchema } from '../utils/validation';
 
+import { updateInterestVector, mapCategoryToGenre, GENRES, getDefaultInterestVector } from '../utils/pitScore';
+
 export const DebateRoom = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -28,6 +30,7 @@ export const DebateRoom = () => {
   const [inputText, setInputText] = useState('');
   const [showParticipants, setShowParticipants] = useState(true);
   const [isVerdictPhase, setIsVerdictPhase] = useState(false);
+  const [selectedVerdictVote, setSelectedVerdictVote] = useState('PRO');
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState('NEUTRAL');
   const [loading, setLoading] = useState(true);
@@ -38,10 +41,20 @@ export const DebateRoom = () => {
   // Load Room Data
   useEffect(() => {
     const fetchRoom = async () => {
-      const docSnap = await getDoc(doc(db, 'rooms', id));
+      const roomRef = doc(db, 'rooms', id);
+      const docSnap = await getDoc(roomRef);
       if (docSnap.exists()) {
         const roomData = docSnap.data();
         setRoom(roomData);
+
+        // Increment view count in Firestore
+        try {
+          await updateDoc(roomRef, {
+            views: (roomData.views || 0) + 1
+          });
+        } catch (err) {
+          console.warn("Could not increment views:", err);
+        }
         
         // If user is logged in but not in participants, open join modal
         if (user && !roomData.participants?.some(p => p.uid === user.uid)) {
@@ -54,7 +67,7 @@ export const DebateRoom = () => {
       setLoading(false);
     };
     fetchRoom();
-  }, [id, navigate]);
+  }, [id, navigate, user]);
 
   // Load Messages from Firestore
   useEffect(() => {
@@ -152,6 +165,31 @@ export const DebateRoom = () => {
       };
 
       await addDoc(collection(db, 'rooms', id, 'messages'), newMessage);
+
+      // Update room messageCount
+      try {
+        await updateDoc(doc(db, 'rooms', id), {
+          messageCount: (room.messageCount || 0) + 1
+        });
+      } catch (err) {
+        console.warn("Could not increment message count:", err);
+      }
+
+      // Drift user interest vector (positive delta: comment = +0.7)
+      try {
+        const genre = mapCategoryToGenre(room.category);
+        const genreIdx = GENRES.indexOf(genre);
+        if (genreIdx !== -1 && user?.uid) {
+          const currentVector = user.interestVector || getDefaultInterestVector();
+          const nextVector = updateInterestVector(currentVector, genreIdx, 'comment');
+          await updateDoc(doc(db, 'users', user.uid), {
+            interestVector: nextVector
+          });
+        }
+      } catch (err) {
+        console.warn("Could not drift interest vector:", err);
+      }
+      
       setInputText('');
     } catch (error) {
       if (error.name === 'ZodError') {
@@ -202,6 +240,49 @@ export const DebateRoom = () => {
     } catch (error) {
       console.error("Failed to end debate:", error);
       alert("Failed to end discussion. Check your Firestore permissions.");
+    }
+  };
+
+  const handleCastVote = async () => {
+    try {
+      const roomRef = doc(db, 'rooms', id);
+      const updates = {
+        status: 'closed'
+      };
+
+      if (selectedVerdictVote === 'PRO') {
+        updates.proVotes = (room.proVotes || 0) + 1;
+      } else {
+        updates.conVotes = (room.conVotes || 0) + 1;
+      }
+
+      await updateDoc(roomRef, updates);
+      setRoom(prev => ({
+        ...prev,
+        ...updates
+      }));
+
+      // Drift user interest vector (positive delta: vote cast = +0.3/0.4)
+      try {
+        const genre = mapCategoryToGenre(room.category);
+        const genreIdx = GENRES.indexOf(genre);
+        if (genreIdx !== -1 && user?.uid) {
+          const currentVector = user.interestVector || getDefaultInterestVector();
+          const nextVector = updateInterestVector(currentVector, genreIdx, 'like'); // Map 'vote' to like action (+0.4)
+          await updateDoc(doc(db, 'users', user.uid), {
+            interestVector: nextVector
+          });
+        }
+      } catch (err) {
+        console.warn("Could not drift interest vector:", err);
+      }
+
+      alert(`Verdict Vote registered for ${selectedVerdictVote}! The debate is officially closed.`);
+      setIsVerdictPhase(false);
+      navigate('/feed');
+    } catch (error) {
+      console.error("Failed to submit verdict vote:", error);
+      alert("Failed to submit vote. Check permissions.");
     }
   };
 
@@ -389,21 +470,42 @@ export const DebateRoom = () => {
               exit={{ y: '100%' }}
               className="absolute inset-0 z-30 bg-chalk flex flex-col items-center justify-center p-8 text-center"
             >
-              <div className="max-w-lg w-full">
-                <h2 className="text-6xl mb-4">VERDICT PHASE</h2>
-                <p className="font-mono text-lg mb-8">Debate closed. Who made the strongest case? Cast your vote below.</p>
+              <div className="max-w-lg w-full space-y-6">
+                <h2 className="text-6xl mb-2 font-bebas tracking-wide">VERDICT PHASE</h2>
+                <p className="font-mono text-xs text-static uppercase">[THE RESOLUTION PROTOCOL DETECTED]</p>
+                <p className="font-mono text-sm leading-relaxed text-ink/75 max-w-md mx-auto">
+                  The debate window is closed. Choose which argument line proved superior on this topic. Your selection directly impacts sorting and reputation.
+                </p>
                 
-                <div className="space-y-4 mb-8 max-h-[400px] overflow-y-auto p-4 brutalist-border">
-                  <VoteItem name={room.creatorName} />
+                <div className="grid grid-cols-2 gap-6 my-8">
+                  <button
+                    onClick={() => setSelectedVerdictVote('PRO')}
+                    className={`flex flex-col items-center justify-center p-6 border-4 border-void brutalist-shadow transition-all hover:-translate-y-1 ${
+                      selectedVerdictVote === 'PRO' ? 'bg-byte text-chalk shadow-none' : 'bg-chalk text-byte hover:bg-byte/5'
+                    }`}
+                  >
+                    <span className="font-bebas text-5xl">PRO</span>
+                    <span className="font-mono text-xs uppercase mt-2">Support Affirmative</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedVerdictVote('CON')}
+                    className={`flex flex-col items-center justify-center p-6 border-4 border-void brutalist-shadow transition-all hover:-translate-y-1 ${
+                      selectedVerdictVote === 'CON' ? 'bg-signal text-chalk shadow-none' : 'bg-chalk text-signal hover:bg-signal/5'
+                    }`}
+                  >
+                    <span className="font-bebas text-5xl">CON</span>
+                    <span className="font-mono text-xs uppercase mt-2">Support Opposing</span>
+                  </button>
                 </div>
 
-                <div className="flex gap-4">
-                  <Button className="flex-1 py-4 text-xl" onClick={() => setIsVerdictPhase(false)}>
-                    Submit Vote
+                <div className="flex gap-4 pt-4">
+                  <Button className="flex-1 py-4 text-xl font-bebas tracking-wider" onClick={handleCastVote}>
+                    Record Verdict Vote_
                   </Button>
                 </div>
-                <p className="mt-4 font-mono text-xs text-static uppercase animate-pulse">
-                  Results processing...
+                <p className="mt-4 font-mono text-[10px] text-static uppercase animate-pulse">
+                  System Awaiting Input Consensus...
                 </p>
               </div>
             </motion.div>
