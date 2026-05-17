@@ -15,12 +15,13 @@ export const Feed = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const q = query(
       collection(db, 'rooms'),
       orderBy('createdAt', 'desc'),
-      limit(20)
+      limit(50)
     );
 
     const unsubscribe = onSnapshot(q, 
@@ -42,13 +43,26 @@ export const Feed = () => {
   }, []);
 
   const filteredRooms = useMemo(() => {
-    if (filter === 'All') return rooms;
-    return rooms.filter(r => r.category === filter);
-  }, [rooms, filter]);
+    let result = rooms.filter(r => r.createdBy && r.topic); // Only keep user-created valid rooms
+    
+    if (filter !== 'All') {
+      result = result.filter(r => r.category === filter);
+    }
+    
+    if (searchQuery.trim() !== '') {
+      const lowerQ = searchQuery.toLowerCase();
+      result = result.filter(r => 
+        r.topic.toLowerCase().includes(lowerQ) || 
+        r.category.toLowerCase().includes(lowerQ)
+      );
+    }
+    
+    return result;
+  }, [rooms, filter, searchQuery]);
 
   const liveRooms = useMemo(() => filteredRooms.filter(r => r.status === 'live'), [filteredRooms]);
   const lobbyRooms = useMemo(() => filteredRooms.filter(r => r.status === 'lobby'), [filteredRooms]);
-  const closedRooms = useMemo(() => filteredRooms.filter(r => r.status === 'closed'), [filteredRooms]);
+  const closedRooms = useMemo(() => filteredRooms.filter(r => r.status === 'verdict' || r.status === 'closed'), [filteredRooms]);
 
   return (
     <MainLayout>
@@ -59,7 +73,12 @@ export const Feed = () => {
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
             <div className="relative w-full md:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-static" size={18} />
-              <Input className="pl-10" placeholder="Search topics..." />
+              <Input 
+                className="pl-10" 
+                placeholder="Search topics..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
             <Link to="/create">
               <Button className="w-full md:w-auto flex items-center gap-2">
