@@ -192,10 +192,10 @@ export const DebateRoom = () => {
           </div>
           {user?.uid === room.createdBy && room.status !== 'verdict' && (
             <Button 
-              className="hidden md:block bg-signal hover:bg-signal/80 px-4 py-1 text-sm"
+              className="bg-signal hover:bg-signal/80 px-3 py-1 text-xs md:text-sm whitespace-nowrap"
               onClick={handleEndDebate}
             >
-              End Debate
+              End Discussion
             </Button>
           )}
         </div>
