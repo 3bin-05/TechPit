@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
@@ -11,18 +11,12 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  databaseURL: "https://debate-c787f-default-rtdb.firebaseio.com"
 };
 
-// Check for missing environment variables
-Object.entries(firebaseConfig).forEach(([key, value]) => {
-  if (!value) {
-    console.warn(`[FIREBASE] Missing environment variable: VITE_FIREBASE_${key.toUpperCase()}`);
-  }
-});
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase once
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);

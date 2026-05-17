@@ -5,7 +5,7 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Search, Users, Clock, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, Users, Clock, ChevronRight, Loader2, Plus } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -56,9 +56,16 @@ export const Feed = () => {
         {/* Header & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h2 className="text-4xl">The Pit</h2>
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-static" size={18} />
-            <Input className="pl-10" placeholder="Search topics..." />
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-static" size={18} />
+              <Input className="pl-10" placeholder="Search topics..." />
+            </div>
+            <Link to="/create">
+              <Button className="w-full md:w-auto flex items-center gap-2">
+                <Plus size={18} /> Create Debate
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -119,7 +126,12 @@ export const Feed = () => {
                         startTime="Open" 
                       />
                     )) : (
-                      <p className="font-mono text-xs text-static uppercase">No active lobbies. Create one!</p>
+                      <div className="p-8 border-2 border-dashed border-static/40 bg-static/5 flex flex-col items-center justify-center text-center gap-4">
+                        <p className="font-mono text-xs text-static uppercase">No active lobbies detected in this sector.</p>
+                        <Link to="/create">
+                          <Button variant="secondary" className="px-6 py-2">Create One Now_</Button>
+                        </Link>
+                      </div>
                     )}
                   </div>
                 </section>

@@ -8,7 +8,7 @@ export const authSchema = z.object({
 
 export const roomSchema = z.object({
   topic: z.string().min(10, 'Topic must be at least 10 characters.').max(120, 'Topic truncated at 120 characters.').trim(),
-  category: z.enum(['Security', 'Languages', 'AI', 'OS', 'Web']),
+  category: z.enum(['Security', 'Languages', 'AI', 'OS', 'Web', 'Hardware']),
   position: z.enum(['PRO', 'CON']),
   timeLimit: z.enum(['15', '30', '60']),
   roomType: z.enum(['FREEFLOW', 'ROUNDS']),

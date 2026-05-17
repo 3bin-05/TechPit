@@ -47,17 +47,24 @@ export const CreateRoom = () => {
         return;
       }
 
+      const creatorData = {
+        uid: user.uid,
+        username: user.username || user.displayName || 'Anon_Operator',
+        position: formData.position
+      };
+
+      console.log("Generating room with data:", { ...formData, createdBy: user.uid });
       const docRef = await addDoc(collection(db, 'rooms'), {
         ...formData,
         createdBy: user.uid,
-        creatorName: user.username || user.displayName || 'Anon_Operator',
+        creatorName: creatorData.username,
         createdAt: serverTimestamp(),
         status: 'lobby',
-        participants: [],
-        participantCount: 0,
-        messages: []
+        participants: [creatorData],
+        participantCount: 1,
       });
       
+      console.log("Room created successfully:", docRef.id);
       navigate(`/room/${docRef.id}`);
     } catch (error) {
       console.error("Error creating room:", error);
@@ -109,6 +116,7 @@ export const CreateRoom = () => {
                   <option>AI</option>
                   <option>OS</option>
                   <option>Web</option>
+                  <option>Hardware</option>
                 </select>
               </div>
               <div className="space-y-2">
