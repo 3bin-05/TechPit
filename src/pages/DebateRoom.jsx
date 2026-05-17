@@ -31,6 +31,8 @@ export const DebateRoom = () => {
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState('NEUTRAL');
   const [loading, setLoading] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isTimeUp, setIsTimeUp] = useState(false);
   const scrollRef = useRef(null);
 
   // Load Room Data
@@ -83,6 +85,38 @@ export const DebateRoom = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Timer Logic
+  useEffect(() => {
+    if (!room) return;
+    
+    // Fallback to Date.now() if createdAt is not yet synced from serverTimestamp()
+    const startTime = room.createdAt?.toMillis ? room.createdAt.toMillis() : Date.now();
+    const limitMs = parseInt(room.timeLimit || 30) * 60 * 1000;
+    const endTime = startTime + limitMs;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const diff = endTime - now;
+      if (diff <= 0) {
+        setTimeLeft(0);
+        setIsTimeUp(true);
+      } else {
+        setTimeLeft(Math.floor(diff / 1000));
+        setIsTimeUp(false);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [room]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
 
   const handleSend = async () => {
     if (!user) {
@@ -185,12 +219,14 @@ export const DebateRoom = () => {
         </div>
         <div className="flex items-center gap-6">
           <div className="hidden md:flex flex-col items-end">
-            <div className="flex items-center gap-2 text-glitch font-mono font-bold text-xl">
-              <Clock size={20} /> {room.timeLimit}:00
+            <div className={`flex items-center gap-2 font-mono font-bold text-xl ${isTimeUp ? 'text-signal animate-pulse' : 'text-glitch'}`}>
+              <Clock size={20} /> {formatTime(timeLeft)}
             </div>
-            <span className="text-[10px] uppercase text-static">Time Remaining</span>
+            <span className="text-[10px] uppercase text-static">
+              {isTimeUp ? 'Time Up' : 'Time Remaining'}
+            </span>
           </div>
-          {user?.uid === room.createdBy && room.status !== 'verdict' && (
+          {user?.uid === room.createdBy && room.status !== 'verdict' && isTimeUp && (
             <Button 
               className="bg-signal hover:bg-signal/80 px-3 py-1 text-xs md:text-sm whitespace-nowrap"
               onClick={handleEndDebate}
