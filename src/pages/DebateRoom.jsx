@@ -90,8 +90,17 @@ export const DebateRoom = () => {
   useEffect(() => {
     if (!room) return;
     
-    // Fallback to Date.now() if createdAt is not yet synced from serverTimestamp()
-    const startTime = room.createdAt?.toMillis ? room.createdAt.toMillis() : Date.now();
+    let startTime;
+    if (room.createdAt?.toMillis) {
+      startTime = room.createdAt.toMillis();
+    } else if (room.createdAt?.seconds) {
+      startTime = room.createdAt.seconds * 1000;
+    } else if (typeof room.createdAt === 'number') {
+      startTime = room.createdAt;
+    } else {
+      startTime = Date.now(); // Fallback
+    }
+
     const limitMs = parseInt(room.timeLimit || 30) * 60 * 1000;
     const endTime = startTime + limitMs;
 
@@ -110,9 +119,10 @@ export const DebateRoom = () => {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [room]);
+  }, [room?.createdAt, room?.timeLimit]);
 
   const formatTime = (seconds) => {
+    if (isNaN(seconds) || seconds < 0) return "00:00";
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
@@ -191,6 +201,7 @@ export const DebateRoom = () => {
       setIsVerdictPhase(true);
     } catch (error) {
       console.error("Failed to end debate:", error);
+      alert("Failed to end discussion. Check your Firestore permissions.");
     }
   };
 
@@ -218,15 +229,15 @@ export const DebateRoom = () => {
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <div className="hidden md:flex flex-col items-end">
-            <div className={`flex items-center gap-2 font-mono font-bold text-xl ${isTimeUp ? 'text-signal animate-pulse' : 'text-glitch'}`}>
+          <div className="flex flex-col items-end">
+            <div className={`flex items-center gap-2 font-mono font-bold text-lg md:text-xl ${isTimeUp ? 'text-signal animate-pulse' : 'text-glitch'}`}>
               <Clock size={20} /> {formatTime(timeLeft)}
             </div>
             <span className="text-[10px] uppercase text-static">
               {isTimeUp ? 'Time Up' : 'Time Remaining'}
             </span>
           </div>
-          {user?.uid === room.createdBy && room.status !== 'verdict' && isTimeUp && (
+          {user?.uid === room.createdBy && room.status !== 'verdict' && (
             <Button 
               className="bg-signal hover:bg-signal/80 px-3 py-1 text-xs md:text-sm whitespace-nowrap"
               onClick={handleEndDebate}
